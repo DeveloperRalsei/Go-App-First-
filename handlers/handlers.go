@@ -7,21 +7,25 @@ import (
 
 func WaitForResponse() string {
 	var value string
+	fmt.Printf("Please enter a value between 1 and 4: ")
 	fmt.Scan(&value)
 
 	return value
 }
 
-func ListTasks() {
+func Welcome() {
 	fmt.Println("--- Welcome to To-Do App ---")
-	fmt.Println("")
+}
+
+func ListTasks() {
+	fmt.Printf("\n")
 
 	for i, task := range models.Tasks {
-		fmt.Printf("%d. %v", i+1, task.Name)
+		fmt.Printf("%d - %v \n", i+1, task.Name)
 	}
 }
 
-func CreateNewTask(task models.Task) {
+func CreateNewTask(task models.Task) []models.Task {
 	models.Tasks = append(models.Tasks, task)
-
+	return models.Tasks
 }
