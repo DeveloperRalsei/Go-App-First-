@@ -31,11 +31,12 @@ func main() {
 					false: " ",
 				}[t.IsComplated], t.Name)
 			}
-			fmt.Printf("\n")
+			time.Sleep(3 * time.Second)
 		case "2":
 			utils.Clear()
 			fmt.Printf("Enter the id of To-Do: ")
 			todoStr, _ := reader.ReadString('\n')
+			todoStr = strings.TrimSpace(todoStr)
 
 			todoId, err := strconv.ParseInt(todoStr, 10, 64)
 			if err != nil {
@@ -44,40 +45,68 @@ func main() {
 				utils.Clear()
 				goto start
 			}
-			todo := handlers.GetTodoFromId(todoId)
-			fmt.Printf("todo: %v\n", todo)
+
+			todo, todoErr := handlers.GetTodoFromId(todoId)
+			if todoErr != nil {
+				fmt.Printf("To-Do Not Found: %s", todoStr)
+				time.Sleep(1500 * time.Millisecond)
+				utils.Clear()
+				goto start
+			}
+
+			handlers.ViewTodo(todo)
 		case "3":
 			utils.Clear()
+			todos, _ := handlers.GetAllTodos()
+
+			if len(todos) == 0 {
+				if err := os.MkdirAll("data", 0755); err != nil {
+					fmt.Printf("Couldn't create dir: %v\n", err)
+					break
+				}
+				file, err := os.Create("data/todos.json")
+				if err != nil {
+					fmt.Printf("Couldn't create file: %v\n", err)
+					break
+				}
+				file.Close()
+			}
+
 			var todo models.Todo
 
-			fmt.Print("Please enter the name of To-Do(0 for exit): ")
+			fmt.Print("Please enter the name of To-Do (0 for exit): ")
 			todoName, _ := reader.ReadString('\n')
 			todoName = strings.TrimSpace(todoName)
 			if todoName == "0" {
 				utils.Clear()
-				goto start
+				break
 			}
-			todo.Name = strings.TrimSpace(todoName)
+			todo.Name = todoName
 
 			fmt.Print("\nPlease enter a description: ")
 			todoDesc, _ := reader.ReadString('\n')
 			todo.Description = strings.TrimSpace(todoDesc)
 
-		checkIsComplated:
-			fmt.Print("\nIs this To-Do complated?(0-1) ")
-			var isComplated string
-			fmt.Scan(&isComplated)
-			if isComplated == "1" {
-				todo.IsComplated = true
-			} else if isComplated == "0" {
-				todo.IsComplated = false
-			} else {
-				fmt.Printf("Wrong usage")
-				time.Sleep(1500 * time.Millisecond)
-				goto checkIsComplated
+			for {
+				fmt.Print("\nIs this To-Do completed? (0-1): ")
+				var isCompleted string
+				fmt.Scan(&isCompleted)
+
+				if isCompleted == "1" {
+					todo.IsComplated = true
+					break
+				} else if isCompleted == "0" {
+					todo.IsComplated = false
+					break
+				} else {
+					fmt.Println("Invalid input. Please enter 0 or 1.")
+				}
 			}
 
-			handlers.AddNewTodo(todo)
+			if err := handlers.AddNewTodo(&todo); err != nil {
+				fmt.Printf("Error adding new To-Do: %v\n", err)
+			}
+
 		case "0":
 			utils.Exit()
 
