@@ -16,3 +16,7 @@ func Clear() {
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
+
+func Exit() {
+	os.Exit(0)
+}

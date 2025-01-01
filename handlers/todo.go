@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"todo/env"
 	"todo/models"
-	"todo/utils"
 )
 
-func GetAllTodos() []models.Todo {
-	f, _ := os.Open(env.TodosFile)
+func GetAllTodos() ([]models.Todo, error) {
+	f, err := os.Open(env.TodosFile)
+	if err != nil {
+		return []models.Todo{}, errors.New("Something went wrong while reading todos.json :(")
+	}
 	defer f.Close()
 
 	decoder := json.NewDecoder(f)
@@ -19,10 +22,23 @@ func GetAllTodos() []models.Todo {
 		decoder.Decode(&data)
 	}
 
-	return data
+	return data, nil
 }
 
 func AddNewTodo(todo models.Todo) {
-	utils.Clear()
-	return
+	// todos, _ := GetAllTodos()
+}
+
+func GetTodoFromId(id int64) models.Todo {
+	todos, _ := GetAllTodos()
+	var foundTodo models.Todo
+
+	for _, t := range todos {
+		if t.Id == id {
+			foundTodo = t
+			break
+		}
+	}
+
+	return foundTodo
 }
